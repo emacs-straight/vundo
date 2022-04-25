@@ -5,7 +5,7 @@
 ;; Author: Yuan Fu <casouri@gmail.com>
 ;; Maintainer: Yuan Fu <casouri@gmail.com>
 ;; URL: https://github.com/casouri/vundo
-;; Version: 1.0.0
+;; Version: 2.0.0
 ;; Keywords: undo, text, editing
 ;; Package-Requires: ((emacs "28.1"))
 ;;
@@ -114,10 +114,10 @@
 ;; `vundo--build-tree'. We build the tree by a simple observation:
 ;; only non-undo modifications creates new unique buffer states and
 ;; need to be drawn in the tree. For undo modifications, they
-;; associates equivalent nodes.
+;; associate equivalent nodes.
 ;;
 ;; Once we have generated the data structure and drawn the tree, vundo
-;; commands can move around on that tree by calling
+;; commands can move around in that tree by calling
 ;; `vundo--move-to-node'. It will construct the correct undo-list and
 ;; feed it to `primitive-undo'. `vundo--trim-undo-list' can trim the
 ;; undo list when possible.
@@ -183,7 +183,7 @@
   "If non-nil, vundo will roll back the change when it quits."
   :type 'boolean)
 
-(defcustom vundo--window-max-height 3
+(defcustom vundo-window-max-height 3
   "The maximum height of the vundo window."
   :type 'integer)
 
@@ -252,6 +252,19 @@ characters."
 		        :key-type (symbol :tag "Part of tree")
 		        :value-type (character :tag "Draw using")
 		        :options ,(mapcar #'car vundo-unicode-symbols)))
+
+(defcustom vundo-pre-enter-hook nil
+  "List of functions to call when entering vundo.
+This hook runs immediately after ‘vundo’ is called, in the buffer
+the user invoked ‘vundo’, before every setup ‘vundo’ does."
+  :type 'hook)
+
+(defcustom vundo-post-exit-hook nil
+  "List of functions to call when entering vundo.
+This hook runs in the original buffer the user invoked ‘vundo’,
+after every clean up the exiting function does. Ie, it is the
+very last thing that happens when vundo exists."
+  :type 'hook)
 
 ;;; Undo list to mod list
 
@@ -732,6 +745,7 @@ This function modifies ‘vundo--prev-mod-list’,
   (interactive)
   (when (not (consp buffer-undo-list))
     (user-error "There is no undo history"))
+  (run-hooks 'vundo-pre-enter-hook)
   (let ((vundo-buf (vundo-1 (current-buffer))))
     (select-window
      (display-buffer-in-side-window
@@ -740,7 +754,7 @@ This function modifies ‘vundo--prev-mod-list’,
         (window-height . 3))))
     (set-window-dedicated-p nil t)
     (let ((window-min-height 3))
-      (fit-window-to-buffer nil vundo--window-max-height))
+      (fit-window-to-buffer nil vundo-window-max-height))
     (goto-char
      (vundo-m-point
       (vundo--current-node vundo--prev-mod-list)))
@@ -805,14 +819,20 @@ Roll back changes if `vundo-roll-back-on-quit' is non-nil."
       vundo--orig-buffer vundo--prev-mod-list))
    (with-current-buffer vundo--orig-buffer
      (setq-local buffer-read-only nil))
-   (kill-buffer-and-window)))
+   (let ((orig-buffer vundo--orig-buffer))
+     (kill-buffer-and-window)
+     (with-current-buffer orig-buffer
+       (run-hooks 'vundo-post-exit-hook)))))
 
 (defun vundo-confirm ()
   "Confirm change and close vundo window."
   (interactive)
   (with-current-buffer vundo--orig-buffer
     (setq-local buffer-read-only nil))
-  (kill-buffer-and-window))
+  (let ((orig-buffer vundo--orig-buffer))
+    (kill-buffer-and-window)
+    (with-current-buffer orig-buffer
+      (run-hooks 'vundo-post-exit-hook))))
 
 ;;; Traverse undo tree
 
