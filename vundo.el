@@ -701,7 +701,7 @@ WINDOW is the window that was/is displaying the vundo buffer."
   (setq mode-line-format nil
         truncate-lines t
         cursor-type nil)
-  (jit-lock-mode -1)
+  (jit-lock-mode nil)
   (face-remap-add-relative 'default 'vundo-default)
 
   ;; Disable evil-mode, as normal-mode
@@ -958,7 +958,7 @@ Roll back changes if `vundo-roll-back-on-quit' is non-nil."
   "Calculate the shortest route from FROM to TO node.
 Return (SOURCE STOP1 STOP2 ... DEST), meaning you should undo the
 modifications from DEST to SOURCE. Each STOP is an intermediate
-stop. Eg, (6 5 4 3). Return nil if no valid route."
+stop. Eg, (6 5 4 3). Return nil if there’s no valid route."
   (let (route-list)
     ;; Find all valid routes.
     (dolist (source (vundo--eqv-list-of from))
