@@ -1,11 +1,11 @@
 ;;; vundo.el --- Visual undo tree      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2023 Free Software Foundation, Inc.
 ;;
 ;; Author: Yuan Fu <casouri@gmail.com>
 ;; Maintainer: Yuan Fu <casouri@gmail.com>
 ;; URL: https://github.com/casouri/vundo
-;; Version: 2.1.0
+;; Version: 2.2.0
 ;; Keywords: undo, text, editing
 ;; Package-Requires: ((emacs "28.1"))
 ;;
@@ -562,7 +562,7 @@ current buffer (if unmodified)."
 (defun vundo--next-line-at-column (col)
   "Move point to next line column COL."
   (unless (and (eq 0 (forward-line))
-               (not (eq (point) (point-max))))
+               (not (eobp)))
     (goto-char (point-max))
     (insert "\n"))
   (move-to-column col)
