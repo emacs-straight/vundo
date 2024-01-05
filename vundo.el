@@ -217,6 +217,7 @@ most recent such node, which receives the face `vundo-last-saved'."
   :type '(choice (const :tag "Bottom" bottom)
                  (const :tag "Top"    top)))
 
+;;;###autoload
 (defconst vundo-ascii-symbols
   '((selected-node . ?x)
     (node . ?o)
@@ -226,6 +227,7 @@ most recent such node, which receives the face `vundo-last-saved'."
     (last-branch . ?`))
   "ASCII symbols to draw vundo tree.")
 
+;;;###autoload
 (defconst vundo-unicode-symbols
   '((selected-node . ?●)
     (node . ?○)
@@ -289,6 +291,13 @@ the user invoked ‘vundo’, before every setup ‘vundo’ does."
 This hook runs in the original buffer the user invoked ‘vundo’,
 after all the clean up the exiting function does. Ie, it is the
 very last thing that happens when vundo exists."
+  :type 'hook)
+
+(defcustom vundo-diff-setup-hook nil
+  "List of functions to call after creating a diff buffer.
+This hook runs in the ‘vundo-diff’ buffer immediately after it's setup,
+both for new or existing buffers. This may be used to
+manipulate the diff or transform it's contents."
   :type 'hook)
 
 ;;; Undo list to mod list
