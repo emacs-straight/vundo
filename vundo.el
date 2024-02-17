@@ -556,13 +556,13 @@ The alist is sorted by time, with latest saved mods first."
              if ts do
              (let* ((mod-node (aref mod-list (1- idx)))
                     (master (vundo--master-eqv-mod-of mod-node))
-                    (old-ts (cdr (assq master timestamps))))
+                    (entry (assq master timestamps))
+                    (old-ts (cdr entry)))
                (when (and old-ts (time-less-p ts old-ts))
                  ;; Equivalent node modified again? take the newer time.
                  (setq ts old-ts))
-               ;; Push the new pair to TIMESTAMPS, so it overrides
-               ;; previously pushed pairs.
-               (push (cons master ts) timestamps)))
+               (if entry (setcdr entry ts)
+                 (push (cons master ts) timestamps))))
     (sort timestamps  ; Sort latest first.
           (lambda (a b) (time-less-p (cdr b) (cdr a))))))
 
@@ -745,6 +745,7 @@ WINDOW is the window that was/is displaying the vundo buffer."
 (declare-function vundo-diff "vundo-diff")
 (declare-function vundo-diff-mark "vundo-diff")
 (declare-function vundo-diff-unmark "vundo-diff")
+(declare-function vundo-diff--quit "vundo-diff")
 (defvar vundo-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "f") #'vundo-forward)
@@ -1028,6 +1029,7 @@ Roll back changes if `vundo-roll-back-on-quit' is non-nil."
      (when (window-live-p orig-window)
        (select-window orig-window))
      (with-current-buffer orig-buffer
+       (vundo-diff--quit)
        (run-hooks 'vundo-post-exit-hook)))))
 
 (defun vundo-confirm ()
@@ -1041,6 +1043,7 @@ Roll back changes if `vundo-roll-back-on-quit' is non-nil."
     (when (window-live-p orig-window)
       (select-window orig-window))
     (with-current-buffer orig-buffer
+      (vundo-diff--quit)
       (run-hooks 'vundo-post-exit-hook))))
 
 ;;; Traverse undo tree
